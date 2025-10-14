@@ -1,0 +1,336 @@
+@extends('admin.partials.master')
+
+@section('master')
+<!-- Page Header -->
+<div class="top-header">
+    <div class="page-title">
+        <h2>Dashboard Overview</h2>
+        <p class="page-subtitle">Welcome back, {{ auth()->user()->name }}!</p>
+    </div>
+    <div class="header-actions">
+        <button class="btn-icon" data-bs-toggle="tooltip" title="Refresh">
+            <i class="mdi mdi-refresh"></i>
+        </button>
+        <button class="btn-icon" data-bs-toggle="tooltip" title="Notifications">
+            <i class="mdi mdi-bell-outline"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">
+                <i class="mdi mdi-account-multiple"></i>
+            </div>
+            <div class="stat-value">{{ $totalAccounts }}</div>
+            <div class="stat-label">Total Accounts</div>
+            <div class="stat-change positive">
+                <i class="mdi mdi-arrow-up"></i> Active
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--secondary);">
+                <i class="mdi mdi-briefcase"></i>
+            </div>
+            <div class="stat-value">{{ $totalProjects }}</div>
+            <div class="stat-label">Total Projects</div>
+            <div class="stat-change positive">
+                <i class="mdi mdi-arrow-up"></i> Running
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                <i class="mdi mdi-clock-outline"></i>
+            </div>
+            <div class="stat-value">{{ $pendingReviews }}</div>
+            <div class="stat-label">Pending Reviews</div>
+            <div class="stat-change">
+                <i class="mdi mdi-minus"></i> In Queue
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                <i class="mdi mdi-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ $completedReviews }}</div>
+            <div class="stat-label">Completed Reviews</div>
+            <div class="stat-change positive">
+                <i class="mdi mdi-arrow-up"></i> Success Rate: {{ $successRate }}%
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row mb-4">
+    <!-- Reviews Per Day Chart -->
+    <div class="col-md-8 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Reviews Activity (Last 7 Days)</h5>
+                <canvas id="reviewsChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Status Distribution -->
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Project Status</h5>
+                <canvas id="statusChart" height="200"></canvas>
+                <div class="mt-3">
+                    @foreach($projectStatus as $status)
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">{{ ucfirst($status->status) }}</span>
+                            <span class="badge
+                                @if($status->status == 'approved') badge-success
+                                @elseif($status->status == 'pending') badge-warning
+                                @elseif($status->status == 'rejected') badge-danger
+                                @else badge-info @endif">
+                                {{ $status->total }}
+                            </span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accounts by Type & Recent Activities -->
+<div class="row">
+    <!-- Accounts by Type -->
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Accounts by Client Type</h5>
+                <canvas id="accountsChart" height="200"></canvas>
+                <div class="mt-3">
+                    @foreach($accountsByType as $type)
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">{{ $type->type }}</span>
+                            <span class="badge badge-info">{{ $type->total }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="col-md-8 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Recent Activity</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Project ID</th>
+                                <th>Account ID</th>
+                                <th>Rating</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($recentActivities as $activity)
+                                <tr>
+                                    <td><strong>#{{ $activity->project_id }}</strong></td>
+                                    <td>{{ $activity->account_id }}</td>
+                                    <td>
+                                        @for($i = 0; $i < $activity->rating; $i++)
+                                            <i class="mdi mdi-star text-warning"></i>
+                                        @endfor
+                                    </td>
+                                    <td>
+                                        <span class="badge
+                                            @if($activity->status == 'approved') badge-success
+                                            @elseif($activity->status == 'pending') badge-warning
+                                            @elseif($activity->status == 'rejected') badge-danger
+                                            @endif">
+                                            {{ ucfirst($activity->status) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $activity->created_at->diffForHumans() }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No recent activities</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title mb-4">Quick Actions</h5>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.review.accounts', ['type' => 'Client1']) }}" class="btn btn-primary w-100">
+                            <i class="mdi mdi-account-plus"></i> Add Account
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.review.projects', ['type' => 'Client1']) }}" class="btn btn-primary w-100">
+                            <i class="mdi mdi-briefcase-plus"></i> Create Project
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ route('admin.review.submit', ['type' => 'Client1']) }}" class="btn btn-primary w-100">
+                            <i class="mdi mdi-send"></i> Start Posting
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button onclick="window.location.reload()" class="btn btn-primary w-100">
+                            <i class="mdi mdi-refresh"></i> Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('js')
+<script>
+    // Reviews Per Day Chart
+    const reviewsCtx = document.getElementById('reviewsChart').getContext('2d');
+    const reviewsChart = new Chart(reviewsCtx, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($reviewsPerDay->pluck('date')->map(function($date) {
+                return \Carbon\Carbon::parse($date)->format('M d');
+            })) !!},
+            datasets: [{
+                label: 'Reviews',
+                data: {!! json_encode($reviewsPerDay->pluck('total')) !!},
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#334155'
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#334155'
+                    },
+                    ticks: {
+                        color: '#94a3b8'
+                    }
+                }
+            }
+        }
+    });
+
+    // Project Status Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    const statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode($projectStatus->pluck('status')->map(function($status) {
+                return ucfirst($status);
+            })) !!},
+            datasets: [{
+                data: {!! json_encode($projectStatus->pluck('total')) !!},
+                backgroundColor: [
+                    '#10b981',
+                    '#f59e0b',
+                    '#ef4444',
+                    '#3b82f6'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Accounts by Type Chart
+    const accountsCtx = document.getElementById('accountsChart').getContext('2d');
+    const accountsChart = new Chart(accountsCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {!! json_encode($accountsByType->pluck('type')) !!},
+            datasets: [{
+                data: {!! json_encode($accountsByType->pluck('total')) !!},
+                backgroundColor: [
+                    '#6366f1',
+                    '#8b5cf6',
+                    '#ec4899',
+                    '#14b8a6'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        console.log('Auto-refreshing data...');
+        // You can implement AJAX refresh here if needed
+    }, 30000);
+</script>
+@endpush

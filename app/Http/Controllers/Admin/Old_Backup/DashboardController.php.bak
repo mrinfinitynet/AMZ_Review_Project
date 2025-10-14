@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\AmazonReviewAccount;
+use App\Models\AmazonReviewProject;
+use App\Models\AmazonReviewProjectHistory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class DashboardController extends Controller
+{
+    public function dashboard()
+    {
+        // Get total counts
+        $totalAccounts = AmazonReviewAccount::count();
+        $totalProjects = AmazonReviewProject::select('project_id')->distinct()->count();
+        $pendingReviews = AmazonReviewProject::where('status', 'pending')->count();
+        $completedReviews = AmazonReviewProjectHistory::where('status', 'approved')->count();
+
+        // Get recent activity
+        $recentActivities = AmazonReviewProjectHistory::with('project')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Get statistics by type
+        $accountsByType = AmazonReviewAccount::select('type', DB::raw('count(*) as total'))
+            ->groupBy('type')
+            ->get();
+
+        // Get project status distribution
+        $projectStatus = AmazonReviewProject::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->get();
+
+        // Get reviews per day for the last 7 days
+        $reviewsPerDay = AmazonReviewProjectHistory::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('count(*) as total')
+            )
+            ->where('created_at', '>=', now()->subDays(7))
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // Calculate success rate
+        $totalHistories = AmazonReviewProjectHistory::count();
+        $approvedHistories = AmazonReviewProjectHistory::where('status', 'approved')->count();
+        $successRate = $totalHistories > 0 ? round(($approvedHistories / $totalHistories) * 100, 1) : 0;
+
+        return view("admin.dashboard", compact(
+            'totalAccounts',
+            'totalProjects',
+            'pendingReviews',
+            'completedReviews',
+            'recentActivities',
+            'accountsByType',
+            'projectStatus',
+            'reviewsPerDay',
+            'successRate'
+        ));
+    }
+}

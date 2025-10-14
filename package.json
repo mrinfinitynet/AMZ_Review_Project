@@ -1,0 +1,23 @@
+{
+    "private": true,
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "devDependencies": {
+        "axios": "^1.1.2",
+        "laravel-vite-plugin": "^0.7.2",
+        "vite": "^4.0.0"
+    },
+    "dependencies": {
+        "dotenv": "^17.2.1",
+        "fast-luhn": "^2.0.2",
+        "fs-extra": "^11.3.0",
+        "luhn-js": "^1.1.2",
+        "playwright": "^1.51.0",
+        "puppeteer": "^24.4.0",
+        "puppeteer-extra": "^3.3.6",
+        "puppeteer-extra-plugin-stealth": "^2.11.2",
+        "user-agents": "^1.1.470"
+    }
+}
