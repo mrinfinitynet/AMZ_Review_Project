@@ -30,5 +30,6 @@ class AccountController extends Controller
 
     public function logoutSubmit(){
         Auth::logout();
+        return redirect()->route('login')->with('success', 'You have been logged out successfully!');
     }
 }
