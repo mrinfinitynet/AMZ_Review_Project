@@ -252,6 +252,16 @@
         color: white;
     }
 
+    .btn-resubmit {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .btn-resubmit:hover {
+        background: #d97706;
+        color: white;
+    }
+
     .review-message {
         color: #6b7280;
         font-size: 14px;
@@ -423,6 +433,12 @@
                                class="btn-action btn-check">
                                 <i class="mdi mdi-refresh"></i> Check
                             </a>
+                            @if(isset($item->status) && $item->status === 'rejected')
+                                <a href="{{ route('admin.review.startReview', ['review_id' => $item->review_id]) }}"
+                                   class="btn-action btn-resubmit">
+                                    <i class="mdi mdi-send"></i> Resubmit
+                                </a>
+                            @endif
                             <button data-bs-toggle="modal"
                                     data-bs-target="#editReview"
                                     class="btn-action btn-edit edit-project"
@@ -601,6 +617,11 @@
                                 <a href="/admin/review/start-review?review_id=${item.review_id}" class="btn-action btn-check">
                                     <i class="mdi mdi-refresh"></i> Check
                                 </a>
+                                ${item.status === 'rejected' ? `
+                                    <a href="/admin/review/start-review?review_id=${item.review_id}" class="btn-action btn-resubmit">
+                                        <i class="mdi mdi-send"></i> Resubmit
+                                    </a>
+                                ` : ''}
                                 <button class="btn-action btn-edit edit-project"
                                         data-bs-toggle="modal"
                                         data-bs-target="#editReview"
