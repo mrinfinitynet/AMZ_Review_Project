@@ -3,11 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Amazon Review Dashboard</title>
+    <title>{{ $settings['site_title'] ?? 'Review Pro' }} - Admin Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset($settings['favicon'] ?? 'favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset($settings['favicon'] ?? 'favicon.ico') }}">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Material Design Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <!-- Toastr CSS -->
@@ -834,7 +837,11 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-logo">
-            <h4><i class="mdi mdi-star"></i> Review Pro</h4>
+            @if(isset($settings['logo']) && $settings['logo'])
+                <img src="{{ asset($settings['logo']) }}" alt="{{ $settings['site_title'] ?? 'Review Pro' }}" style="max-height: 40px; width: auto; margin-bottom: 10px;">
+            @else
+                <h4><i class="mdi mdi-star"></i> {{ $settings['site_title'] ?? 'Review Pro' }}</h4>
+            @endif
         </div>
 
         <div class="user-profile">
@@ -875,6 +882,13 @@
                     <a href="{{ route('admin.clients.index') }}" class="nav-link {{ Route::is('admin.clients.*') ? 'active' : '' }}">
                         <i class="mdi mdi-cog"></i>
                         Manage Clients
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('admin.frontend.index') }}" class="nav-link {{ Route::is('admin.frontend.*') ? 'active' : '' }}">
+                        <i class="mdi mdi-web"></i>
+                        Frontend
                     </a>
                 </li>
 

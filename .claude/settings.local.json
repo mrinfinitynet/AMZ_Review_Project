@@ -5,7 +5,8 @@
       "Bash(php artisan make:migration:*)",
       "Bash(php artisan:*)",
       "Bash(php:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(curl -s \"https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css\")"
     ],
     "deny": [],
     "ask": []

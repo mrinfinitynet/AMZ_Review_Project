@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\AmazonReviewController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FrontendController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,7 +19,18 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('landing');
+    $settings = \App\Models\FrontendSetting::all()->pluck('value', 'key');
+    $packages = \App\Models\Package::active()->get();
+    return view('landing', compact('settings', 'packages'));
+});
+
+// Page Routes
+Route::controller(\App\Http\Controllers\PageController::class)->name('page.')->group(function() {
+    Route::get('/about', 'about')->name('about');
+    Route::get('/terms', 'terms')->name('terms');
+    Route::get('/privacy', 'privacy')->name('privacy');
+    Route::get('/terms-of-service', 'tos')->name('tos');
+    Route::get('/cookie-policy', 'cookies')->name('cookies');
 });
 
 /*
@@ -75,9 +87,6 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::post('/update-project/{id}', 'updateProject')->name('updateProject');
 
         // Book Data Fetching (Educational Purpose)
-        Route::get('/test-book-fetch', function() {
-            return view('admin.pages.reviews.test-book-fetch');
-        })->name('testBookFetch');
         Route::post('/fetch-book-data', 'fetchBookData')->name('fetchBookData');
     });
 
@@ -90,6 +99,8 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::put('/{client}', 'update')->name('update');
         Route::delete('/{client}', 'destroy')->name('destroy');
         Route::post('/{client}/toggle-status', 'toggleStatus')->name('toggleStatus');
+        Route::post('/{client}/generate-key', 'generateKey')->name('generateKey');
+        Route::post('/{client}/remove-key', 'removeKey')->name('removeKey');
     });
 
     // Task Management Routes
@@ -99,4 +110,27 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::get('/review/{reviewId}/status', 'getReviewTaskStatus')->name('reviewStatus');
         Route::post('/retry/{taskId}', 'retryTask')->name('retry');
     });
+
+    // Frontend Management Routes
+    Route::controller(FrontendController::class)->name("frontend.")->prefix('frontend')->group(function() {
+        Route::get('/', 'index')->name('index');
+        Route::post('/settings', 'updateSettings')->name('updateSettings');
+        Route::get('/packages', 'packages')->name('packages');
+        Route::post('/packages', 'storePackage')->name('storePackage');
+        Route::put('/packages/{id}', 'updatePackage')->name('updatePackage');
+        Route::delete('/packages/{id}', 'deletePackage')->name('deletePackage');
+    });
+});
+
+// User Dashboard Routes (Key-based access)
+Route::controller(\App\Http\Controllers\UserDashboardController::class)->prefix('dashboard')->name('user.')->group(function() {
+    Route::post('/verify', 'verifyKey')->name('verify');
+    Route::get('/', 'dashboard')->name('dashboard');
+    Route::get('/search', 'searchProjects')->name('search');
+    Route::get('/logout', 'logout')->name('logout');
+});
+
+// Public Book Data Routes (No authentication required)
+Route::controller(\App\Http\Controllers\PublicBookController::class)->prefix('book')->name('book.')->group(function() {
+    Route::post('/fetch-data', 'fetchBookData')->name('fetchData');
 });

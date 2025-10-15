@@ -39,20 +39,33 @@ class ClientController extends Controller
             'code' => 'required|string|max:255|unique:clients,code|alpha_dash',
             'description' => 'nullable|string',
             'is_active' => 'nullable|boolean',
-            'sort_order' => 'nullable|integer'
+            'sort_order' => 'nullable|integer',
+            'generate_key' => 'nullable|boolean'
         ]);
 
-        $client = Client::create([
+        $clientData = [
             'name' => $request->name,
             'code' => $request->code,
             'description' => $request->description,
             'is_active' => $request->has('is_active') ? true : false,
             'sort_order' => $request->sort_order ?? 0
-        ]);
+        ];
+
+        // Generate access key if requested
+        if ($request->has('generate_key') && $request->generate_key) {
+            $clientData['key'] = Client::generateKey();
+        }
+
+        $client = Client::create($clientData);
+
+        $message = 'Client created successfully!';
+        if (isset($clientData['key'])) {
+            $message .= ' Access Key: ' . $clientData['key'];
+        }
 
         return redirect()
             ->route('admin.clients.index')
-            ->with('success', 'Client created successfully!');
+            ->with('success', $message);
     }
 
     /**
@@ -113,5 +126,30 @@ class ClientController extends Controller
         return redirect()
             ->route('admin.clients.index')
             ->with('success', 'Client status updated successfully!');
+    }
+
+    /**
+     * Generate or regenerate access key for a client
+     */
+    public function generateKey(Client $client)
+    {
+        $key = Client::generateKey();
+        $client->update(['key' => $key]);
+
+        return redirect()
+            ->route('admin.clients.index')
+            ->with('success', 'Access key generated successfully! Key: ' . $key);
+    }
+
+    /**
+     * Remove access key from a client
+     */
+    public function removeKey(Client $client)
+    {
+        $client->update(['key' => null]);
+
+        return redirect()
+            ->route('admin.clients.index')
+            ->with('success', 'Access key removed successfully!');
     }
 }

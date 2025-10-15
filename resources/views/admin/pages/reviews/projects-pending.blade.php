@@ -13,6 +13,47 @@
             background-color: transparent !important;
             color: var(--dark-text) !important;
         }
+
+        /* Reviews Container - Hidden by default */
+        .reviews-container {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .reviews-container.show {
+            display: block;
+        }
+
+        /* Expand Button */
+        .btn-expand-reviews {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-expand-reviews:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-expand-reviews i {
+            transition: transform 0.3s ease;
+        }
+
+        .btn-expand-reviews.expanded i {
+            transform: rotate(180deg);
+        }
     </style>
 @endpush
 
@@ -244,6 +285,23 @@
             searchByAsin();
         }
     });
+
+    // Toggle reviews visibility
+    function toggleReviews(button) {
+        const container = button.nextElementSibling;
+        const icon = button.querySelector('i');
+        const span = button.querySelector('span');
+
+        if (container.classList.contains('show')) {
+            container.classList.remove('show');
+            button.classList.remove('expanded');
+            span.textContent = `View All Reviews (${container.querySelectorAll('.mb-3').length})`;
+        } else {
+            container.classList.add('show');
+            button.classList.add('expanded');
+            span.textContent = 'Hide Reviews';
+        }
+    }
     </script>
 
     <!-- Projects Grid -->
@@ -350,73 +408,82 @@
 
                         <hr style="border-color: var(--border-color);">
 
-                        @foreach ($result['reviews'] as $index => $review)
-                            <div class="mb-3 p-3 rounded" style="background: var(--dark-bg); border: 1px solid var(--border-color);">
-                                <!-- Header -->
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold" style="font-size: 14px; color: var(--dark-text);">
-                                            <i class="mdi mdi-file-document"></i>
-                                            #{{ $index+1 }} {{ Str::limit($review["review_title"] ?? 'Untitled', 40) }}
+                        <!-- Expand Reviews Button -->
+                        <button class="btn-expand-reviews" onclick="toggleReviews(this)">
+                            <i class="mdi mdi-chevron-down"></i>
+                            <span>View All Reviews ({{ count($result['reviews']) }})</span>
+                        </button>
+
+                        <!-- Reviews Container (Hidden by default) -->
+                        <div class="reviews-container">
+                            @foreach ($result['reviews'] as $index => $review)
+                                <div class="mb-3 p-3 rounded" style="background: var(--dark-bg); border: 1px solid var(--border-color);">
+                                    <!-- Header -->
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold" style="font-size: 14px; color: var(--dark-text);">
+                                                <i class="mdi mdi-file-document"></i>
+                                                #{{ $index+1 }} {{ Str::limit($review["review_title"] ?? 'Untitled', 40) }}
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-1 ms-2">
+                                            @if ($review["status"] === "pending")
+                                                <a href="{{ route("admin.review.startReview", ["review_id" => $review["id"]]) }}"
+                                                   class="btn btn-sm btn-success"
+                                                   title="Start Review">
+                                                    <i class="mdi mdi-play-circle"></i>
+                                                </a>
+                                            @else
+                                                <a href="{{ route("admin.review.startReview", ["review_id" => $review["id"]]) }}"
+                                                   class="btn btn-sm btn-primary"
+                                                   title="Retry Review">
+                                                    <i class="mdi mdi-refresh"></i>
+                                                </a>
+                                            @endif
                                         </div>
                                     </div>
-                                    <div class="d-flex gap-1 ms-2">
-                                        @if ($review["status"] === "pending")
-                                            <a href="{{ route("admin.review.startReview", ["review_id" => $review["id"]]) }}"
-                                               class="btn btn-sm btn-success"
-                                               title="Start Review">
-                                                <i class="mdi mdi-play-circle"></i>
-                                            </a>
-                                        @else
-                                            <a href="{{ route("admin.review.startReview", ["review_id" => $review["id"]]) }}"
-                                               class="btn btn-sm btn-primary"
-                                               title="Retry Review">
-                                                <i class="mdi mdi-refresh"></i>
-                                            </a>
-                                        @endif
+
+                                    <!-- Description -->
+                                    <p class="text-muted mb-2 small" style="font-size: 13px;">
+                                        {{ Str::limit($review["review_description"] ?? 'No description', 100) }}
+                                    </p>
+
+                                    <!-- Footer Details -->
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <span class="small">
+                                            <i class="mdi mdi-account"></i>
+                                            <strong>Account:</strong> {{ $review["account_id"] ?? 'N/A' }}
+                                        </span>
+                                        <span class="small">
+                                            <strong>Rating:</strong>
+                                            @for($i = 0; $i < $review["rating"]; $i++)
+                                                <i class="mdi mdi-star text-warning"></i>
+                                            @endfor
+                                            @for($i = $review["rating"]; $i < 5; $i++)
+                                                <i class="mdi mdi-star-outline text-muted"></i>
+                                            @endfor
+                                        </span>
+                                        <span>
+                                            @if($review["status"] === 'pending')
+                                                <span class="badge badge-warning">
+                                                    <i class="mdi mdi-clock-outline"></i> Pending
+                                                </span>
+                                            @elseif($review["status"] === 'approved')
+                                                <span class="badge badge-success">
+                                                    <i class="mdi mdi-check-circle"></i> Approved
+                                                </span>
+                                            @elseif($review["status"] === 'rejected')
+                                                <span class="badge badge-danger">
+                                                    <i class="mdi mdi-close-circle"></i> Rejected
+                                                </span>
+                                            @else
+                                                <span class="badge badge-info">{{ ucfirst($review["status"]) }}</span>
+                                            @endif
+                                        </span>
                                     </div>
                                 </div>
-
-                                <!-- Description -->
-                                <p class="text-muted mb-2 small" style="font-size: 13px;">
-                                    {{ Str::limit($review["review_description"] ?? 'No description', 100) }}
-                                </p>
-
-                                <!-- Footer Details -->
-                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <span class="small">
-                                        <i class="mdi mdi-account"></i>
-                                        <strong>Account:</strong> {{ $review["account_id"] ?? 'N/A' }}
-                                    </span>
-                                    <span class="small">
-                                        <strong>Rating:</strong>
-                                        @for($i = 0; $i < $review["rating"]; $i++)
-                                            <i class="mdi mdi-star text-warning"></i>
-                                        @endfor
-                                        @for($i = $review["rating"]; $i < 5; $i++)
-                                            <i class="mdi mdi-star-outline text-muted"></i>
-                                        @endfor
-                                    </span>
-                                    <span>
-                                        @if($review["status"] === 'pending')
-                                            <span class="badge badge-warning">
-                                                <i class="mdi mdi-clock-outline"></i> Pending
-                                            </span>
-                                        @elseif($review["status"] === 'approved')
-                                            <span class="badge badge-success">
-                                                <i class="mdi mdi-check-circle"></i> Approved
-                                            </span>
-                                        @elseif($review["status"] === 'rejected')
-                                            <span class="badge badge-danger">
-                                                <i class="mdi mdi-close-circle"></i> Rejected
-                                            </span>
-                                        @else
-                                            <span class="badge badge-info">{{ ucfirst($review["status"]) }}</span>
-                                        @endif
-                                    </span>
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
                 </div>
             </div>

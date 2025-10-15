@@ -26,5 +26,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Share active clients with all views
         View::composer('admin.partials.master', ClientComposer::class);
+
+        // Share frontend settings (logo, favicon, site title) with all views
+        View::composer('*', function ($view) {
+            $settings = \App\Models\FrontendSetting::all()->pluck('value', 'key');
+            $view->with('settings', $settings);
+        });
     }
 }

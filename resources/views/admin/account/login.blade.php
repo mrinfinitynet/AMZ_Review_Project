@@ -3,11 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Login - Amazon Review Dashboard</title>
+    <title>Login - {{ $settings['site_title'] ?? 'Review Pro' }}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset($settings['favicon'] ?? 'favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset($settings['favicon'] ?? 'favicon.ico') }}">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Material Design Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
     <!-- Toastr CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
@@ -384,11 +387,15 @@
         <div class="login-card">
             <!-- Logo Section -->
             <div class="logo-section">
-                <div class="logo-icon">
-                    <i class="mdi mdi-star"></i>
-                </div>
+                @if(isset($settings['logo']) && $settings['logo'])
+                    <img src="{{ asset($settings['logo']) }}" alt="{{ $settings['site_title'] ?? 'Review Pro' }}" style="max-height: 70px; width: auto; margin-bottom: 20px;">
+                @else
+                    <div class="logo-icon">
+                        <i class="mdi mdi-star"></i>
+                    </div>
+                @endif
                 <h1 class="login-title">Welcome Back</h1>
-                <p class="login-subtitle">Sign in to your Review Pro account</p>
+                <p class="login-subtitle">Sign in to your {{ $settings['site_title'] ?? 'Review Pro' }} account</p>
             </div>
 
             <!-- Alert Messages -->
@@ -470,7 +477,7 @@
 
             <!-- Footer -->
             <div class="footer-text">
-                <p>&copy; 2025 Review Pro. All rights reserved.</p>
+                <p>&copy; 2025 {{ $settings['site_title'] ?? 'Review Pro' }}. All rights reserved.</p>
             </div>
         </div>
     </div>

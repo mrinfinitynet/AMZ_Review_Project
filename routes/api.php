@@ -21,68 +21,116 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 /*
 |--------------------------------------------------------------------------
-| Worker API Routes
-|--------------------------------------------------------------------------
-| Routes for static PC worker to communicate with cPanel
-*/
-Route::prefix('worker')->name('api.worker.')->group(function () {
-    // Task progress updates
-    Route::post('/tasks/{taskId}/progress', [WorkerController::class, 'updateProgress'])->name('progress');
-    Route::post('/tasks/{taskId}/complete', [WorkerController::class, 'completeTask'])->name('complete');
-
-    // Worker heartbeat and status
-    Route::post('/heartbeat', [WorkerController::class, 'heartbeat'])->name('heartbeat');
-    Route::get('/status/{workerId}', [WorkerController::class, 'getWorkerStatus'])->name('status');
-    Route::get('/workers', [WorkerController::class, 'getAllWorkers'])->name('workers');
-});
-
-/*
-|--------------------------------------------------------------------------
 | Claude Server API Routes
 |--------------------------------------------------------------------------
 | These routes serve as the API endpoints for remote admin panels
 | Protected by API token authentication
 */
-// Route::middleware(['api.token'])->group(function () {
 
-    // Admin Management API
-    Route::prefix('admins')->name('api.admins.')->group(function () {
-        Route::get('/', [App\Http\Controllers\API\AdminController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\API\AdminController::class, 'store'])->name('store');
-        Route::get('/{id}', [App\Http\Controllers\API\AdminController::class, 'show'])->name('show');
-        Route::put('/{id}', [App\Http\Controllers\API\AdminController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\API\AdminController::class, 'destroy'])->name('destroy');
-        Route::post('/search', [App\Http\Controllers\API\AdminController::class, 'search'])->name('search');
-    });
+// Amazon Review Accounts API
+Route::prefix('amazon-review-accounts')->name('api.amazon-review-accounts.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'index'])->name('index');
+    Route::post('/', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'store'])->name('store');
+    Route::get('/{id}', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'show'])->name('show');
+    Route::put('/{id}', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'update'])->name('update');
+    Route::patch('/{id}', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'update'])->name('patch');
+    Route::delete('/{id}', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'destroy'])->name('destroy');
 
-    // Project Management API
-    Route::prefix('projects')->name('api.projects.')->group(function () {
-        Route::get('/', [App\Http\Controllers\API\ProjectController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\API\ProjectController::class, 'store'])->name('store');
-        Route::get('/{id}', [App\Http\Controllers\API\ProjectController::class, 'show'])->name('show');
-        Route::put('/{id}', [App\Http\Controllers\API\ProjectController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\API\ProjectController::class, 'destroy'])->name('destroy');
-        Route::post('/search', [App\Http\Controllers\API\ProjectController::class, 'search'])->name('search');
-    });
+    // Bulk operations
+    Route::post('/bulk-delete', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'bulkDelete'])->name('bulkDelete');
+    Route::post('/bulk-update', [App\Http\Controllers\Api\AmazonReviewAccountApiController::class, 'bulkUpdate'])->name('bulkUpdate');
+});
 
-    // Account Management API
-    Route::prefix('accounts')->name('api.accounts.')->group(function () {
-        Route::get('/', [App\Http\Controllers\API\AccountController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\API\AccountController::class, 'store'])->name('store');
-        Route::get('/{id}', [App\Http\Controllers\API\AccountController::class, 'show'])->name('show');
-        Route::put('/{id}', [App\Http\Controllers\API\AccountController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\API\AccountController::class, 'destroy'])->name('destroy');
-        Route::post('/search', [App\Http\Controllers\API\AccountController::class, 'search'])->name('search');
-    });
+// Amazon Review Projects API
+Route::prefix('amazon-review-projects')->name('api.amazon-review-projects.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'index'])->name('index');
+    Route::get('/grouped', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'grouped'])->name('grouped');
+    Route::post('/', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'store'])->name('store');
+    Route::get('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'show'])->name('show');
+    Route::put('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'update'])->name('update');
+    Route::patch('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'update'])->name('patch');
+    Route::delete('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'destroy'])->name('destroy');
 
-    // Post/Posting Management API
-    Route::prefix('posts')->name('api.posts.')->group(function () {
-        Route::get('/', [App\Http\Controllers\API\PostController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\API\PostController::class, 'store'])->name('store');
-        Route::get('/{id}', [App\Http\Controllers\API\PostController::class, 'show'])->name('show');
-        Route::put('/{id}', [App\Http\Controllers\API\PostController::class, 'update'])->name('update');
-        Route::delete('/{id}', [App\Http\Controllers\API\PostController::class, 'destroy'])->name('destroy');
-        Route::post('/search', [App\Http\Controllers\API\PostController::class, 'search'])->name('search');
-    });
+    // Special operations
+    Route::post('/update-status', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'updateStatus'])->name('updateStatus');
 
-// });
+    // Bulk operations
+    Route::post('/bulk-delete', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'bulkDelete'])->name('bulkDelete');
+    Route::post('/bulk-update', [App\Http\Controllers\Api\AmazonReviewProjectApiController::class, 'bulkUpdate'])->name('bulkUpdate');
+});
+
+// Amazon Review Project History API
+Route::prefix('amazon-review-project-histories')->name('api.amazon-review-project-histories.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'index'])->name('index');
+    Route::post('/', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'store'])->name('store');
+    Route::get('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'show'])->name('show');
+    Route::put('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'update'])->name('update');
+    Route::patch('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'update'])->name('patch');
+    Route::delete('/{id}', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'destroy'])->name('destroy');
+
+    // Special operations
+    Route::post('/clear', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'clearHistory'])->name('clearHistory');
+
+    // Bulk operations
+    Route::post('/bulk-delete', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'bulkDelete'])->name('bulkDelete');
+    Route::post('/bulk-update', [App\Http\Controllers\Api\AmazonReviewProjectHistoryApiController::class, 'bulkUpdate'])->name('bulkUpdate');
+});
+
+// Clients API
+Route::prefix('clients')->name('api.clients.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Api\ClientApiController::class, 'index'])->name('index');
+    Route::get('/active', [App\Http\Controllers\Api\ClientApiController::class, 'active'])->name('active');
+    Route::post('/', [App\Http\Controllers\Api\ClientApiController::class, 'store'])->name('store');
+    Route::get('/by-code/{code}', [App\Http\Controllers\Api\ClientApiController::class, 'showByCode'])->name('showByCode');
+    Route::get('/by-key/{key}', [App\Http\Controllers\Api\ClientApiController::class, 'showByKey'])->name('showByKey');
+    Route::get('/{id}', [App\Http\Controllers\Api\ClientApiController::class, 'show'])->name('show');
+    Route::put('/{id}', [App\Http\Controllers\Api\ClientApiController::class, 'update'])->name('update');
+    Route::patch('/{id}', [App\Http\Controllers\Api\ClientApiController::class, 'update'])->name('patch');
+    Route::delete('/{id}', [App\Http\Controllers\Api\ClientApiController::class, 'destroy'])->name('destroy');
+
+    // Special operations
+    Route::post('/verify-key', [App\Http\Controllers\Api\ClientApiController::class, 'verifyKey'])->name('verifyKey');
+    Route::post('/{id}/generate-key', [App\Http\Controllers\Api\ClientApiController::class, 'generateKey'])->name('generateKey');
+    Route::post('/{id}/remove-key', [App\Http\Controllers\Api\ClientApiController::class, 'removeKey'])->name('removeKey');
+    Route::post('/{id}/toggle-status', [App\Http\Controllers\Api\ClientApiController::class, 'toggleStatus'])->name('toggleStatus');
+    Route::post('/{id}/track-access', [App\Http\Controllers\Api\ClientApiController::class, 'trackAccess'])->name('trackAccess');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Universal Service API Routes
+|--------------------------------------------------------------------------
+| Dynamic API that works with any table
+| Single endpoint to CRUD any data from any allowed table
+*/
+
+// Get available tables
+Route::get('/service/tables', [App\Http\Controllers\Api\UniversalServiceController::class, 'tables'])->name('api.service.tables');
+
+// Service configuration and testing
+Route::get('/service/config', [App\Http\Controllers\Api\UniversalServiceController::class, 'config'])->name('api.service.config');
+Route::get('/service/test-connection', [App\Http\Controllers\Api\UniversalServiceController::class, 'testConnection'])->name('api.service.testConnection');
+
+// Table operations
+Route::prefix('service/{table}')->name('api.service.')->group(function () {
+    // Get table structure
+    Route::get('/structure', [App\Http\Controllers\Api\UniversalServiceController::class, 'structure'])->name('structure');
+
+    // Get count
+    Route::get('/count', [App\Http\Controllers\Api\UniversalServiceController::class, 'count'])->name('count');
+
+    // Custom query
+    Route::post('/query', [App\Http\Controllers\Api\UniversalServiceController::class, 'customQuery'])->name('query');
+
+    // Bulk operations
+    Route::post('/bulk-delete', [App\Http\Controllers\Api\UniversalServiceController::class, 'bulkDelete'])->name('bulkDelete');
+    Route::post('/bulk-update', [App\Http\Controllers\Api\UniversalServiceController::class, 'bulkUpdate'])->name('bulkUpdate');
+
+    // Standard CRUD
+    Route::get('/', [App\Http\Controllers\Api\UniversalServiceController::class, 'index'])->name('index');
+    Route::post('/', [App\Http\Controllers\Api\UniversalServiceController::class, 'store'])->name('store');
+    Route::get('/{id}', [App\Http\Controllers\Api\UniversalServiceController::class, 'show'])->name('show');
+    Route::put('/{id}', [App\Http\Controllers\Api\UniversalServiceController::class, 'update'])->name('update');
+    Route::patch('/{id}', [App\Http\Controllers\Api\UniversalServiceController::class, 'update'])->name('patch');
+    Route::delete('/{id}', [App\Http\Controllers\Api\UniversalServiceController::class, 'destroy'])->name('destroy');
+});
